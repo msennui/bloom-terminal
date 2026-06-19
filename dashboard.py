@@ -16,19 +16,24 @@ time_frame = st.sidebar.selectbox("Select Time Frame", ["1mo", "3mo", "6mo", "1y
 def format_symbol(input_str):
     input_str = input_str.strip().upper()
     
+    # List of known non-currency tickers (crypto, indices, etc.)
+    non_currency_prefixes = ['BTC', 'ETH', 'XRP', 'ADA', 'LTC', 'DOT', 'DOGE']
+    
     # Try to detect currency pair format
     separators = [' ', '/', '-', '.']
     for sep in separators:
         if sep in input_str:
             parts = input_str.split(sep)
-            if len(parts) == 2 and len(parts[0]) == 3 and len(parts[1]) == 3:
-                return f"{parts[0]}{parts[1]}=X"
+            if len(parts) == 2 and len(parts[0]) == 3 and len(parts[1]) == 3 and parts[0].isalpha() and parts[1].isalpha():
+                # Check if first part is a known non-currency ticker
+                if parts[0] not in non_currency_prefixes:
+                    return f"{parts[0]}{parts[1]}=X"
     
-    # Check if it's already 6 chars (EURGBP format)
-    if len(input_str) == 6 and not any(c in input_str for c in ['=', '-']):
+    # Check if it's 6 chars no separators (EURGBP format)
+    if len(input_str) == 6 and input_str.isalpha():
         return f"{input_str}=X"
     
-    # Otherwise return as-is (regular ticker)
+    # Otherwise return as-is (regular ticker like BTC-USD, AAPL, etc.)
     return input_str
 
 ticker = format_symbol(ticker_input)
