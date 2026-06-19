@@ -14,10 +14,21 @@ time_frame = st.sidebar.selectbox("Select Time Frame", ["1mo", "3mo", "6mo", "1y
 
 # Helper function to format currency pairs
 def format_symbol(input_str):
-    if ' ' in input_str:
-        parts = input_str.strip().split()
-        if len(parts) == 2:
-            return f"{parts[0]}{parts[1]}=X"
+    input_str = input_str.strip().upper()
+    
+    # Try to detect currency pair format
+    separators = [' ', '/', '-', '.']
+    for sep in separators:
+        if sep in input_str:
+            parts = input_str.split(sep)
+            if len(parts) == 2 and len(parts[0]) == 3 and len(parts[1]) == 3:
+                return f"{parts[0]}{parts[1]}=X"
+    
+    # Check if it's already 6 chars (EURGBP format)
+    if len(input_str) == 6 and not any(c in input_str for c in ['=', '-']):
+        return f"{input_str}=X"
+    
+    # Otherwise return as-is (regular ticker)
     return input_str
 
 ticker = format_symbol(ticker_input)
