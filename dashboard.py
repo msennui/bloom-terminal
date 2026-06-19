@@ -8,9 +8,20 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Market Eye", layout="wide")
 # 2. The Sidebar (User Controls)
 st.sidebar.header("User Input")
-ticker = st.sidebar.text_input("Enter Ticker Symbol", "BTC-USD").upper()
+st.sidebar.caption("Enter ticker (e.g., AAPL, BTC-USD) or currency pair (e.g., EUR GBP)")
+ticker_input = st.sidebar.text_input("Enter Ticker Symbol or Currency Pair", "BTC-USD").upper()
 time_frame = st.sidebar.selectbox("Select Time Frame", ["1mo", "3mo", "6mo", "1y", "5y"])
-st.title(f"📊 Live Dashboard: {ticker}")
+
+# Helper function to format currency pairs
+def format_symbol(input_str):
+    if ' ' in input_str:
+        parts = input_str.strip().split()
+        if len(parts) == 2:
+            return f"{parts[0]}{parts[1]}=X"
+    return input_str
+
+ticker = format_symbol(ticker_input)
+st.title(f"📊 Live Dashboard: {ticker_input}")
 
 # 3. Fetch Data
 def get_data(symbol, period):
@@ -23,8 +34,13 @@ def get_data(symbol, period):
 # Get currency info
 def get_currency(symbol):
     try:
-        ticker = yf.Ticker(symbol)
-        currency = ticker.info.get('currency', 'USD')
+        # Check if it's a currency pair (e.g., EURUSD=X)
+        if '=X' in symbol:
+            # Extract the quote currency (last 3 chars before =X)
+            currency = symbol.replace('=X', '')[-3:]
+        else:
+            ticker = yf.Ticker(symbol)
+            currency = ticker.info.get('currency', 'USD')
     except:
         currency = 'USD'
     return currency
